@@ -4,19 +4,44 @@
 
 ```
 diffwise/
-├── packages/
-│   ├── core/          # Diff parser + AI prompt engine (shared)
-│   ├── cli/           # Phase 1 — citty CLI
-│   ├── api/           # Phase 2 — Hono backend
-│   └── ui/            # Phase 2 — Vue 3 frontend
+├── package.json                      # Racine — workspaces config
+├── tsconfig.base.json                # Config TS partagée
+├── eslint.config.js
+├── prettier.config.js
+├── vitest.config.ts
+├── .env.example
+├── .gitignore
+├── README.md
+├── CLAUDE.md                         # Contexte projet pour Claude
 ├── specs/
-│   ├── CONSTITUTION.md    # Règles non-négociables du projet (SDD)
-│   ├── SPEC.md            # Spécification fonctionnelle
-│   └── ARCHITECTURE.md    # Ce fichier
+│   ├── CONSTITUTION.md               # Règles non-négociables (SDD)
+│   ├── SPEC.md                       # Spécification fonctionnelle
+│   └── ARCHITECTURE.md               # Ce fichier
 ├── .github/
 │   └── copilot-instructions.md
-└── README.md
+└── packages/
+    ├── core/                         # Moteur partagé
+    │   ├── package.json
+    │   ├── tsconfig.json
+    │   └── src/
+    │       ├── index.ts              # Exports publics
+    │       ├── diff-parser.ts
+    │       ├── diff-parser.spec.ts
+    │       ├── prompt-builder.ts
+    │       ├── prompt-builder.spec.ts
+    │       ├── ai-client.ts
+    │       ├── output-formatter.ts
+    │       └── prompts/
+    │           └── index.ts          # Prompts système versionnés
+    └── cli/                          # Phase 1 — citty CLI
+        ├── package.json
+        ├── tsconfig.json
+        └── src/
+            ├── index.ts              # Entrée CLI + flags
+            └── runner.ts             # Orchestrateur pipeline
 ```
+
+> Packages `api` et `ui` seront ajoutés en Phase 2.
 
 ---
 

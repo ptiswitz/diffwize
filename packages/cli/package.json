@@ -1,0 +1,19 @@
+{
+  "name": "@diffwise/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "diffwise": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@diffwise/core": "*",
+    "citty": "^0.1.6",
+    "consola": "*"
+  }
+}

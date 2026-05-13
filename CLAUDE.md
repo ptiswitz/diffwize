@@ -56,5 +56,5 @@ Do not generate code for `packages/api` or `packages/ui` unless explicitly asked
 
 - Add dependencies not listed in the Constitution without asking
 - Generate Phase 2 or Phase 3 code unless the user explicitly says so
-- Use `console.log` — use the project logger
+- Use `console.log` — use consola
 - Commit secrets or hardcode API keys
