@@ -37,7 +37,7 @@ Do not generate code for `packages/api` or `packages/ui` unless explicitly asked
 
 - Node.js 20+ / TypeScript 5.x
 - citty (CLI)
-- Anthropic SDK — `claude-sonnet-4-20250514`
+- Anthropic SDK — `claude-sonnet-4-6`
 - Vitest (tests)
 - npm workspaces (monorepo)
 

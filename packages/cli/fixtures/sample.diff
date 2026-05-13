@@ -1,0 +1,113 @@
+diff --git a/packages/core/src/diff-parser.ts b/packages/core/src/diff-parser.ts
+index 3a1b2c4..7d8e9f0 100644
+--- a/packages/core/src/diff-parser.ts
++++ b/packages/core/src/diff-parser.ts
+@@ -24,6 +24,8 @@ const FILE_HEADER_RE = /^diff --git a\/(.+) b\/(.+)$/
+ const HUNK_HEADER_RE = /^@@.+@@/
+ const NEW_FILE_RE = /^new file mode/
+ const DELETED_FILE_RE = /^deleted file mode/
++const SIMILARITY_INDEX_RE = /^similarity index \d+%$/
++const BINARY_FILE_RE = /^Binary files .+ differ$/
+ const RENAME_FROM_RE = /^rename from (.+)$/
+ const RENAME_TO_RE = /^rename to (.+)$/
+
+@@ -60,6 +62,10 @@ export function parseDiff(rawDiff: string): DiffDocument {
+       continue
+     }
+
++    if (SIMILARITY_INDEX_RE.test(line) || BINARY_FILE_RE.test(line)) {
++      continue
++    }
++
+     const renameFromMatch = RENAME_FROM_RE.exec(line)
+     if (renameFromMatch) {
+       renameFrom = renameFromMatch[1] ?? null
+@@ -108,3 +114,14 @@ export function parseDiff(rawDiff: string): DiffDocument {
+     rawText: rawDiff,
+   }
+ }
++
++export function diffStats(doc: DiffDocument): string {
++  const renamedCount = doc.files.filter((f) => f.status === 'renamed').length
++  const parts: string[] = [`${doc.files.length} file(s) changed`]
++  if (doc.totalAdditions > 0) parts.push(`+${doc.totalAdditions}`)
++  if (doc.totalDeletions > 0) parts.push(`-${doc.totalDeletions}`)
++  if (renamedCount > 0) parts.push(`${renamedCount} renamed`)
++  return parts.join(', ')
++}
+diff --git a/packages/core/src/ai-client.ts b/packages/core/src/anthropic-client.ts
+similarity index 87%
+rename from packages/core/src/ai-client.ts
+rename to packages/core/src/anthropic-client.ts
+index abc1234..def5678 100644
+--- a/packages/core/src/ai-client.ts
++++ b/packages/core/src/anthropic-client.ts
+@@ -7,6 +7,7 @@ export type AnalyzeOptions = {
+   mode: AnalyzeMode
+   apiKey?: string
++  timeoutMs?: number
+ }
+
+ export type AnalyzeResult = {
+@@ -14,6 +15,7 @@ export type AnalyzeResult = {
+   content: string
+   mode: AnalyzeMode
+   inputTokens: number
+   outputTokens: number
++  model: string
+ }
+
+ type AnthropicApiError = {
+@@ -33,7 +35,10 @@ export async function analyze(
+   if (!apiKey) {
+     throw new Error('ANTHROPIC_API_KEY is not set. Add it to your .env file.')
+   }
+
+-  const client = new Anthropic({ apiKey })
++  const client = new Anthropic({
++    apiKey,
++    timeout: options.timeoutMs ?? 60_000,
++  })
+
+   consola.debug(`Sending diff to Claude (mode: ${options.mode})...`)
+
+@@ -53,6 +58,7 @@ export async function analyze(
+     return {
+       content: textBlock.text,
+       mode: options.mode,
++      model: response.model,
+       inputTokens: response.usage.input_tokens,
+       outputTokens: response.usage.output_tokens,
+     }
+diff --git a/packages/core/src/token-estimator.ts b/packages/core/src/token-estimator.ts
+new file mode 100644
+index 0000000..1a2b3c4
+--- /dev/null
++++ b/packages/core/src/token-estimator.ts
+@@ -0,0 +1,26 @@
++import type { DiffDocument } from './diff-parser.js'
++
++const CHARS_PER_TOKEN = 4
++
++export function estimateTokens(text: string): number {
++  return Math.ceil(text.length / CHARS_PER_TOKEN)
++}
++
++export function estimateDocumentTokens(doc: DiffDocument): number {
++  return doc.files.reduce((total, file) => {
++    const header = `--- ${file.path} (${file.status}) ---`
++    const hunks = file.hunks.map((h) => [h.header, ...h.lines].join('\n')).join('\n')
++    return total + estimateTokens(header + '\n' + hunks)
++  }, 0)
++}
++
++export type TokenBudget = {
++  estimated: number
++  budget: number
++  isOverBudget: boolean
++}
++
++export function checkTokenBudget(doc: DiffDocument, budget: number): TokenBudget {
++  const estimated = estimateDocumentTokens(doc)
++  return { estimated, budget, isOverBudget: estimated > budget }
++}

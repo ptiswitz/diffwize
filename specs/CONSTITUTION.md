@@ -11,7 +11,7 @@
 - **CLI:** citty
 - **UI:** Vue 3.x (Composition API uniquement) + Vite + Pinia
 - **Backend:** Hono
-- **AI:** Anthropic SDK — modèle `claude-sonnet-4-20250514`
+- **AI:** Anthropic SDK — modèle `claude-sonnet-4-6`
 - **Tests:** Vitest
 - **Monorepo:** npm workspaces
 

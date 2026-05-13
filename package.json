@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "dev:cli": "node --env-file=.env packages/cli/dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/**/src/**/*.ts",

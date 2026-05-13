@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { defineCommand, runMain } from 'citty'
+import { consola } from 'consola'
 import { run } from './runner.js'
 import type { AnalyzeMode } from '@diffwise/core'
 
@@ -38,15 +39,15 @@ const main = defineCommand({
     const mode = args.mode as string
 
     if (!VALID_MODES.includes(mode as AnalyzeMode)) {
-      console.error(`Invalid mode: "${mode}". Valid modes: ${VALID_MODES.join(', ')}`)
+      consola.error(`Invalid mode: "${mode}". Valid modes: ${VALID_MODES.join(', ')}`)
       process.exit(1)
     }
 
     await run({
-      file: args.file as string | undefined,
       mode: mode as AnalyzeMode,
-      output: args.output as string | undefined,
       stats: args.stats as boolean,
+      ...(args.file !== undefined && { file: args.file as string }),
+      ...(args.output !== undefined && { output: args.output as string }),
     })
   },
 })
